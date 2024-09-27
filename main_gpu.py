@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 import subprocess
-from datetime import datetime, timedelta
-import os
-import math
 import json
 
 # get the current date and subtract 1 hour
