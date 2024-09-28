@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 import subprocess
 import json
+import time
+
+from prometheus_client import Gauge, start_http_server
+import datetime
+from datetime import timedelta  
 
 # get the current date and subtract 1 hour
 # format the date properly for the fn
@@ -20,7 +25,7 @@ def get_list_of_nodes():
 #for node in get_list_of_nodes():
 
 def get_node_object(node):
-    print(node)
+    #print(node)
     command = f"scontrol show node {node} --json"
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     slurm_node_object = json.loads(result.stdout)
@@ -56,17 +61,77 @@ def get_node_object(node):
         num_gpus = int(_gres.replace('gpu:', ''))
         num_gpus_used = int(_gres_used.replace('gpu:', ''))
         # return the values
-        print(num_gpus, num_gpus_used, state, features)    
+        #print(num_gpus, num_gpus_used, state, features)    
         return num_gpus, num_gpus_used, state, features
     else:
         return 0, 0, "unknown", "unknown"
 
 
 
+if __name__ == '__main__':
+    
+    #main metric name: slurm_job_wait_time
+    slurm_gpu_metrics_h100_idle = Gauge('slurm_gpu_metrics_h100_idle', 'Slurm gpu usage metrics of idle h100')
+    slurm_gpu_metrics_l4_idle = Gauge('slurm_gpu_metrics_l4_idle', 'Slurm gpu usage metrics of idle l4s')
+    
+    slurm_gpu_metrics_h100_allocated = Gauge('slurm_gpu_metrics_h100_allocated', 'Slurm gpu usage metrics of allocated h100')
+    slurm_gpu_metrics_l4_allocated = Gauge('slurm_gpu_metrics_l4_allocated', 'Slurm gpu usage metrics of allocated l4s')
+    
+    slurm_gpu_metrics_h100_total = Gauge('slurm_gpu_metrics_h100_total', 'Slurm gpu usage metrics of total h100')
+    slurm_gpu_metrics_l4_total = Gauge('slurm_gpu_metrics_l4_total', 'Slurm gpu usage metrics of total l4s')
+    
+    # Start the Prometheus HTTP server on port 8010
+    start_http_server(8010)
+    while True:
+        l4_idle_list = []
+        h100_idle_list = []
+        l4_allocated_list = []
+        h100_allocated_list = []
+        l4_total_list = []
+        h100_total_list = []
+    
+        node_list = get_list_of_nodes()
+        
+        for node in node_list:
+    
+            num_gpus, num_gpus_used, state, features = get_node_object(node)
 
-node_list = get_list_of_nodes()
-
-for node in node_list:
-    num_gpus, num_gpus_used, state, features = get_node_object(node)
-
+            if state == "idle":
+                if features == "h100":
+                    h100_idle_list.append(num_gpus)
+                elif features == "l4":
+                    l4_idle_list.append(num_gpus)
+            elif state == "allocated":
+                if features == "h100":
+                    if num_gpus_used < num_gpus:
+                        idle_diff = num_gpus - num_gpus_used
+                        
+                        h100_idle_list.append(idle_diff)
+                        h100_allocated_list.append(num_gpus_used)
+                    else:
+                        h100_allocated_list.append(num_gpus_used)
+                elif features == "l4":
+                    if num_gpus_used < num_gpus:
+                        idle_diff = num_gpus - num_gpus_used
+                        
+                        l4_idle_list.append(idle_diff)
+                        l4_allocated_list.append(num_gpus_used)
+                    else:
+                        l4_allocated_list.append(num_gpus_used)
+            if features == "h100":
+                h100_total_list.append(num_gpus)
+            elif features == "l4":
+                l4_total_list.append(num_gpus)
+            
+            #time.sleep(2) # sleep for 2 seconds so we don't mess with the scheduler too much
+        
+        # set the metrics
+        slurm_gpu_metrics_h100_idle.set(sum(h100_idle_list))
+        slurm_gpu_metrics_l4_idle.set(sum(l4_idle_list))
+        slurm_gpu_metrics_h100_allocated.set(sum(h100_allocated_list))
+        slurm_gpu_metrics_l4_allocated.set(sum(l4_allocated_list))  
+        slurm_gpu_metrics_h100_total.set(sum(h100_total_list))
+        slurm_gpu_metrics_l4_total.set(sum(l4_total_list))
+        # Sleep for 30 sec
+        time.sleep(30)
 
