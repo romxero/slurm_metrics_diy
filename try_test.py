@@ -12,6 +12,7 @@ import statistics
 # mother command : # sacct -a -X -S 2024-08-24T00:00:00  -o submit,start -P -n | grep -v -e "None" -e "Unknown" 
 
 
+
 def get_job_info(start_date):
     command = f"sacct -a -X -S {start_date} -o submit,start -P -n | grep -v -e 'None' -e 'Unknown'"
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
