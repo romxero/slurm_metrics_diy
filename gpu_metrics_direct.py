@@ -17,12 +17,6 @@ import json
 # the list of partiitons with gpus to filter
 gpu_partitions="a3,a3dev,a3high,a3low,a3mixed,a3mixedlow,g2dev" #partitions with gpus 
 
-#    gpu_util = gpu['utilization.gpu']
-#    gpu_mem = gpu['memory.used']
-#    gpu_mem_total = gpu['memory.total'] 
-#    gpu_temp = gpu['temperature.gpu']
-#    gpu_power = gpu['power.draw']
-#    gpu_name = gpu['name']
 
 prometheus_label_list = ["user", "partition", "node", "jobid", "gpu_num", "gpu_name", "gpu_util", "gpu_used_mem", "gpu_total_mem","gpu_temp", "gpu_power"]
 
@@ -131,62 +125,6 @@ def get_slurm_node_list_on_gpu_partitions(user):
 def get_parsed_slurm_node_list(user, partition):
     node_list = get_slurm_node_list_on_gpu_partitions(user, partition)
     return parse_slurm_node_list(node_list)
-
-
-
-
-#my_gpu_node_object = tmp_grab_gpu_stats_from_node_ssh('dojo-a3-ghpc-16')
-#
-#gpus_obj_list = my_gpu_node_object['gpus']
-#
-#for gpu in gpus_obj_list:
-#    gpu_index = gpu['index']
-#    gpu_util = gpu['utilization.gpu']
-#    gpu_mem = gpu['memory.used']
-#    gpu_mem_total = gpu['memory.total'] 
-#    gpu_temp = gpu['temperature.gpu']
-#    gpu_power = gpu['power.draw']
-#    gpu_name = gpu['name']
-#    print(gpu_index)
-#    print(gpu_name)
-#    print(gpu_util)
-#    print(gpu_mem)
-#    print(gpu_mem_total)
-#    print(gpu_temp)
-#    print(gpu_power)
-#
-#
-#
-#
-#
-#
-#for _user in active_gpu_slurm_users:
-#    _squeue_list = get_slurm_node_list_on_gpu_partitions(_user)
-#    for _job_info_list in _squeue_list:
-#        _node_list = filter_node_list_with_scontrol_and_return_list(_job_info_list['nodes'])
-#        print(_user)
-#        print(_job_info_list)
-#        print(_node_list)
-#        for _node in _node_list:
-#            _gpu_stats = tmp_grab_gpu_stats_from_node_ssh(_node)
-#            #print(_gpu_stats)
-#            for gpu in _gpu_stats['gpus']:
-#                gpu_index = gpu['index']
-#                gpu_util = gpu['utilization.gpu']
-#                gpu_mem = gpu['memory.used']
-#                gpu_mem_total = gpu['memory.total'] 
-#                gpu_temp = gpu['temperature.gpu']
-#                gpu_power = gpu['power.draw']
-#                gpu_name = gpu['name']
-#                print(gpu_index)
-#                print(gpu_name)
-#                print(gpu_util)
-#                print(gpu_mem)
-#                print(gpu_mem_total)
-#                print(gpu_temp)
-#                print(gpu_power)
-#
-
 
 
 
