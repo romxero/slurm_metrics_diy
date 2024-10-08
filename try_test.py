@@ -14,7 +14,9 @@ import statistics
 
 
 def get_job_info(start_date):
-    command = f"sacct -a -X -S {start_date} -o submit,start -P -n | grep -v -e 'None' -e 'Unknown'"
+    base_start_date = start_date.split('T')[0]
+    #print(base_start_date)
+    command = f"sacct -a -X -S {start_date} -o submit,start -P -n | grep -v -e 'None' -e 'Unknown'| grep {base_start_date}"
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     return [line.strip() for line in result.stdout.split('\n') if line.strip()]
 
